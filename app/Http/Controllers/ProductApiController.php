@@ -37,12 +37,12 @@ class ProductApiController extends Controller
         'photos*' => 'file|mimes:png,jpg|max:512'
        ]);
 
-
-        $product = Product::create([
-            'name' => $request->name,
-            'price'=> $request->price,
-            'stock'=> $request->stock
-        ]);
+        $product = new Product();
+        $product->name = $request->name;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->user_id = \Auth::id();
+        $product->save();
 
         $photos = [];
         foreach($request->file('photos') as $key=>$photo){
