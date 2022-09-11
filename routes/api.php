@@ -11,5 +11,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 
-Route::apiResource('products',ProductApiController::class);
-Route::apiResource('photos',PhotoApiController::class);
+Route::middleware('controlProduct')->group(function(){
+    Route::apiResource('products',ProductApiController::class);
+    Route::apiResource('photos',PhotoApiController::class);
+});
+

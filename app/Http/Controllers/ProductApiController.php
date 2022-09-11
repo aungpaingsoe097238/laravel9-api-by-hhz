@@ -64,7 +64,6 @@ class ProductApiController extends Controller
     public function show($id)
     {
         $product = Product::find($id);
-
         if(is_null($product)){
             return response()->json(['message'=>'Product is not found.'],404);
         }
