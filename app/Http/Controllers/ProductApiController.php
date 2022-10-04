@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ProductResource;
 use App\Models\Photo;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Error\Error;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\ProductResource;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductApiController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -18,11 +21,12 @@ class ProductApiController extends Controller
      */
     public function index()
     {
-        $products = Product::latest('id')->paginate(10);
-//        return response()->json($products);
-        return ProductResource::collection($products);
+        return json(
+            ProductResource::collection(Product::latest('id','desc')->paginate(10)),
+            'success',
+            200
+        );
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -30,33 +34,28 @@ class ProductApiController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-       $request->validate([
-        'name' => 'required|min:3|max:50',
-        'price' => 'required|min:1|numeric',
-        'stock' => 'required|min:1|numeric',
-        'photos' => 'required',
-        'photos*' => 'file|mimes:png,jpg|max:512'
-       ]);
-
-
         $product = Product::create([
-            'name' => $request->name ,
+            'name' => $request->name,
             'price' => $request->price,
             'stock' => $request->stock,
-            'user_id' => \Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         $photos = [];
-        foreach($request->file('photos') as $key=>$photo){
+        foreach ($request->file('photos') as $key => $photo) {
             $newName = $photo->store('public');
-            $photos[$key] = new Photo(['name'=>$newName]);
+            $photos[$key] = new Photo(['name' => $newName]);
         }
 
         $product->photos()->saveMany($photos);
 
-        return response()->json($product);
+        return json(
+            new ProductResource($product),
+            'success',
+            200
+        );
     }
 
     /**
@@ -68,12 +67,16 @@ class ProductApiController extends Controller
     public function show($id)
     {
         $product = Product::find($id);
-        if(is_null($product)){
-            return response()->json(['message'=>'Product is not found.'],404);
+
+        if (is_null($product)) {
+            return json([],'data not found',404);
         }
 
-//        return response()->json($product);
-        return new ProductResource($product);
+        return json(
+            new ProductResource($product),
+            'success',
+            200
+        );
     }
 
     /**
@@ -83,35 +86,34 @@ class ProductApiController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
-        $request->validate([
-            'name' => 'nullable|min:3|max:50',
-            'price' => 'nullable|min:1|numeric',
-            'stock' => 'nullable|min:1|numeric'
-           ]);
 
-           $product = Product::find($id);
+        $product = Product::find($id);
 
-           if(is_null($product)){
-               return response()->json(['message'=>'Product is not found.'],404);
-           }
+        if (is_null($product)) {
+            return json([],'data not found',404);
+        }
 
-           if($request->has('name')){
+        if ($request->has('name')) {
             $product->name = $request->name;
-           }
+        }
 
-           if($request->has('price')){
+        if ($request->has('price')) {
             $product->price = $request->price;
-           }
+        }
 
-           if($request->has('stock')){
+        if ($request->has('stock')) {
             $product->stock = $request->stock;
-           }
+        }
 
-           $product->update();
+        $product->update();
 
-           return response()->json($product);
+        return json(
+            new ProductResource($product),
+            'success',
+            200
+        );
 
     }
 
@@ -125,12 +127,16 @@ class ProductApiController extends Controller
     {
         $product = Product::find($id);
 
-        if(is_null($product)){
-            return response()->json(['message'=>'Product is not found.'],404);
+        if (is_null($product)) {
+            return json([],'data not found',404);
         }
 
         $product->delete();
 
-        return response()->json(['message'=>'Product is delete successfully.'],204);
+        return json(
+            new ProductResource($product),
+            'success',
+            200
+        );
     }
 }

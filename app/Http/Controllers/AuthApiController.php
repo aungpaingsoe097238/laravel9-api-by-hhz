@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use TheSeer\Tokenizer\Token;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthApiController extends Controller
 {
@@ -17,10 +19,10 @@ class AuthApiController extends Controller
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => \Hash::make($request->password)
+            'password' => Hash::make($request->password)
         ]);
-        if(\Auth::attempt($request->only(['email','password']))){
-            $token = \Auth::user()->createToken("phone")->plainTextToken;
+        if(Auth::attempt($request->only(['email','password']))){
+            $token = Auth::user()->createToken("phone")->plainTextToken;
             return response()->json($token);
         }
         return response()->json([],403);
@@ -31,19 +33,19 @@ class AuthApiController extends Controller
             'email' => 'required|email',
             'password' => 'required'
         ]);
-        if(\Auth::attempt($request->only(['email','password']))){
-            $token = \Auth::user()->createToken("phone")->plainTextToken;
+        if(Auth::attempt($request->only(['email','password']))){
+            $token = Auth::user()->createToken("phone")->plainTextToken;
             return response()->json($token);
         }
         return response()->json(['User not found.'],403);
     }
 
     public function logout(){
-        \Auth::user()->currentAccessToken()->delete();
+        Auth::user()->currentAccessToken()->delete();
         return response()->json([],204);
     }
 
     public function tokens(){
-        return \Auth::user()->tokens;
+        return Auth::user()->tokens;
     }
 }
