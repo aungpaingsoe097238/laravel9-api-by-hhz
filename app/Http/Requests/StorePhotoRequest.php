@@ -13,7 +13,7 @@ class StorePhotoRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,9 @@ class StorePhotoRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'product_id' => 'required|numeric|exists:products,id',
+            'photos' => 'required',
+            'photos*' => 'file|mimes:png,jpg|max:512'
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePhotoRequest;
 use App\Models\Photo;
 use Illuminate\Http\Request;
 
@@ -14,9 +15,7 @@ class PhotoApiController extends Controller
      */
     public function index()
     {
-        $photos = Photo::all();
-
-        return response()->json($photos);
+        return json(Photo::all(),'success',200);
     }
 
     /**
@@ -25,23 +24,16 @@ class PhotoApiController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StorePhotoRequest $request)
     {
-         $request->validate([
-            'product_id' => 'required|numeric|exists:products,id',
-            'photos' => 'required',
-            'photos*' => 'file|mimes:png,jpg|max:512'
-         ]);
-
-         foreach($request->file('photos') as $key=>$photo){
-            $newName = $photo->store('public');
+        foreach($request->file('photos') as $key=>$photo){
+        $newName = $photo->store('public');
             Photo::create([
                 'name' => $newName,
                 'product_id' => $request->product_id
             ]);
-         }
-
-         return response()->json(['message'=>'photos successfully created.'],200);
+        }
+        return json('','success',200);
     }
 
     /**
@@ -52,7 +44,11 @@ class PhotoApiController extends Controller
      */
     public function show($id)
     {
-        //
+        $photo = Photo::find($id);
+        if(is_null($photo)){
+            return json([],'photo not found',404);
+        }
+        return json($photo,'photo not found',200);
     }
 
     /**
@@ -77,9 +73,9 @@ class PhotoApiController extends Controller
     {
         $photo = Photo::find($id);
         if(is_null($photo)){
-            return response()->json(['message'=>'Photo is not found.'],404);
+            return json([],'photo not found',404);
         }
         $photo->delete();
-        return response([],402);
+        return json($photo,'success',200);
     }
 }
