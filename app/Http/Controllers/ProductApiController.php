@@ -88,7 +88,6 @@ class ProductApiController extends Controller
      */
     public function update(UpdateProductRequest $request, $id)
     {
-
         $product = Product::find($id);
 
         if (is_null($product)) {
